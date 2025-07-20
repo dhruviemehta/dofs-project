@@ -71,7 +71,6 @@ resource "aws_s3_bucket_public_access_block" "codepipeline_artifacts" {
 # CodeBuild IAM Role
 resource "aws_iam_role" "codebuild_role" {
   name = "${var.project_name}-${var.environment}-codebuild-role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -86,10 +85,9 @@ resource "aws_iam_role" "codebuild_role" {
   })
 }
 
-# CodeBuild policies
+# CodeBuild policies - UPDATED WITH MISSING PERMISSIONS
 resource "aws_iam_role_policy" "codebuild_policy" {
   role = aws_iam_role.codebuild_role.name
-
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -98,15 +96,21 @@ resource "aws_iam_role_policy" "codebuild_policy" {
         Action = [
           "logs:CreateLogGroup",
           "logs:CreateLogStream",
-          "logs:PutLogEvents",
+          "logs:PutLogEvents"
+        ]
+        Resource = "arn:aws:logs:*:*:*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "s3:GetObject",
           "s3:GetObjectVersion",
           "s3:PutObject",
           "s3:GetBucketAcl",
-          "s3:GetBucketLocation"
+          "s3:GetBucketLocation",
+          "s3:ListBucket"
         ]
         Resource = [
-          "arn:aws:logs:*:*:*",
           "${aws_s3_bucket.codepipeline_artifacts.arn}",
           "${aws_s3_bucket.codepipeline_artifacts.arn}/*"
         ]
@@ -114,17 +118,97 @@ resource "aws_iam_role_policy" "codebuild_policy" {
       {
         Effect = "Allow"
         Action = [
+          "s3:*"
+        ]
+        Resource = [
+          "arn:aws:s3:::dofs-terraform-state-4aa0782d",
+          "arn:aws:s3:::dofs-terraform-state-4aa0782d/*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "dynamodb:GetItem",
+          "dynamodb:PutItem",
+          "dynamodb:DeleteItem",
+          "dynamodb:DescribeTable",
+          "dynamodb:CreateTable",
+          "dynamodb:UpdateTable",
+          "dynamodb:TagResource",
+          "dynamodb:UntagResource",
+          "dynamodb:ListTagsOfResource",
+          "dynamodb:DescribeContinuousBackups",
+          "dynamodb:DescribeTimeToLive",
+          "dynamodb:DescribeBackup",
+          "dynamodb:ListBackups"
+        ]
+        Resource = [
+          "arn:aws:dynamodb:${var.aws_region}:*:table/dofs-terraform-locks",
+          "arn:aws:dynamodb:${var.aws_region}:*:table/dofs-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "lambda:*",
-          "apigateway:*",
-          "dynamodb:*",
-          "sqs:*",
-          "sns:*",
-          "states:*",
+          "lambda:GetEventSourceMapping"
+        ]
+        Resource = [
+          "arn:aws:lambda:${var.aws_region}:*:function:dofs-*",
+          "arn:aws:lambda:${var.aws_region}:*:event-source-mapping:*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "apigateway:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sqs:*"
+        ]
+        Resource = [
+          "arn:aws:sqs:${var.aws_region}:*:dofs-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "sns:*"
+        ]
+        Resource = [
+          "arn:aws:sns:${var.aws_region}:*:dofs-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "states:*"
+        ]
+        Resource = [
+          "arn:aws:states:${var.aws_region}:*:stateMachine:dofs-*",
+          "arn:aws:states:${var.aws_region}:*:execution:dofs-*"
+        ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "cloudwatch:*",
-          "logs:*",
+          "logs:*"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
           "iam:GetRole",
           "iam:GetRolePolicy",
           "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+          "iam:ListPolicyVersions",
           "iam:ListRolePolicies",
           "iam:ListAttachedRolePolicies",
           "iam:CreateRole",
@@ -135,9 +219,16 @@ resource "aws_iam_role_policy" "codebuild_policy" {
           "iam:DeleteRolePolicy",
           "iam:CreatePolicy",
           "iam:DeletePolicy",
+          "iam:UpdateRole",
+          "iam:UpdateAssumeRolePolicy",
+          "iam:TagRole",
+          "iam:UntagRole",
           "iam:PassRole"
         ]
-        Resource = "*"
+        Resource = [
+          "arn:aws:iam::*:role/dofs-*",
+          "arn:aws:iam::*:policy/dofs-*"
+        ]
       }
     ]
   })
@@ -184,7 +275,6 @@ resource "aws_codebuild_project" "terraform_deploy" {
 # CodePipeline IAM Role
 resource "aws_iam_role" "codepipeline_role" {
   name = "${var.project_name}-${var.environment}-codepipeline-role"
-
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -201,7 +291,6 @@ resource "aws_iam_role" "codepipeline_role" {
 
 resource "aws_iam_role_policy" "codepipeline_policy" {
   role = aws_iam_role.codepipeline_role.name
-
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -282,17 +371,17 @@ resource "aws_codepipeline" "dofs_pipeline" {
 }
 
 # Outputs
-# output "pipeline_name" {
-#   description = "Name of the CodePipeline"
-#   value       = aws_codepipeline.dofs_pipeline.name
-# }
+output "pipeline_name" {
+  description = "Name of the CodePipeline"
+  value       = aws_codepipeline.dofs_pipeline.name
+}
 
-# output "pipeline_url" {
-#   description = "URL to the CodePipeline console"
-#   value       = "https://${var.aws_region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/${aws_codepipeline.dofs_pipeline.name}/view"
-# }
+output "pipeline_url" {
+  description = "URL to the CodePipeline console"
+  value       = "https://${var.aws_region}.console.aws.amazon.com/codesuite/codepipeline/pipelines/${aws_codepipeline.dofs_pipeline.name}/view"
+}
 
-# output "codebuild_project" {
-#   description = "CodeBuild project name"
-#   value       = aws_codebuild_project.terraform_deploy.name
-# }
+output "codebuild_project" {
+  description = "CodeBuild project name"
+  value       = aws_codebuild_project.terraform_deploy.name
+}

@@ -55,6 +55,22 @@ This script will:
 
 ### 3. Deploy Complete Infrastructure
 
+⚠️ CRITICAL: Circular Dependency Issue
+
+WARNING: This system has a circular dependency between Lambda functions and Step Functions that must be handled carefully:
+
+Lambda functions need the Step Function ARN as an environment variable
+Step Functions need Lambda function ARNs to define the workflow
+This creates a Terraform cycle that prevents normal deployment
+
+SOLUTION: The deployment scripts use a 3-stage approach to break this cycle:
+
+Deploy Lambda functions with step_function_arn = ""
+Deploy Step Functions using Lambda ARNs
+Update Lambda environment variables via AWS CLI
+
+DO NOT try to pass module.stepfunctions.state_machine_arn directly to the Lambda module - this will cause a Terraform cycle error!
+
 ```bash
 # Run the automated deployment script
 chmod +x deploy-infrastructure.sh
