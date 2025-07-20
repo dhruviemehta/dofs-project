@@ -53,23 +53,31 @@ This script will:
 - Configure remote backend automatically
 - Migrate local state to remote backend
 
+## ⚠️ CRITICAL: Circular Dependency Issue
+
+> **WARNING**: This system has a **circular dependency** between Lambda functions and Step Functions that must be handled carefully:
+> 
+> - **Lambda functions** need the Step Function ARN as an environment variable
+> - **Step Functions** need Lambda function ARNs to define the workflow
+> - This creates a Terraform cycle that prevents normal deployment
+
+### 🚨 **This Issue ONLY Affects Manual `terraform apply` Commands**
+
+**✅ RECOMMENDED SOLUTIONS (No Issues):**
+- **Use the deployment script**: `./deploy-infrastructure.sh` (handles circular dependency automatically)
+- **Use CI/CD pipeline**: Automated deployment via CodeBuild (documented below)
+
+### MANUAL TERRAFORM DEPLOYMENT:
+If you choose to run `terraform apply` manually, note that:
+- The Step Function ARN will be passed as `null` to the Lambda function
+- You **MUST** manually update the Lambda environment variable later via AWS CLI or Console:
+ ```bash
+ aws lambda update-function-configuration \
+   --function-name dofs-dev-api_handler \
+   --environment Variables='{"STEP_FUNCTION_ARN":"your-step-function-arn"}' \
+   --region ap-south-1
+```
 ### 3. Deploy Complete Infrastructure
-
-⚠️ CRITICAL: Circular Dependency Issue
-
-WARNING: This system has a circular dependency between Lambda functions and Step Functions that must be handled carefully:
-
-Lambda functions need the Step Function ARN as an environment variable
-Step Functions need Lambda function ARNs to define the workflow
-This creates a Terraform cycle that prevents normal deployment
-
-SOLUTION: The deployment scripts use a 3-stage approach to break this cycle:
-
-Deploy Lambda functions with step_function_arn = ""
-Deploy Step Functions using Lambda ARNs
-Update Lambda environment variables via AWS CLI
-
-DO NOT try to pass module.stepfunctions.state_machine_arn directly to the Lambda module - this will cause a Terraform cycle error!
 
 ```bash
 # Run the automated deployment script
