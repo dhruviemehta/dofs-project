@@ -77,7 +77,7 @@ If you choose to run `terraform apply` manually or use standard CI/CD without th
 ```bash
 aws lambda update-function-configuration \
   --function-name dofs-dev-api_handler \
-  --environment Variables='{"PROJECT_NAME":"dofs","ENVIRONMENT":"dev","STEP_FUNCTION_ARN":"your-step-function-arn"}' \
+  --environment Variables='{PROJECT_NAME=dofs,ENVIRONMENT=dev,STEP_FUNCTION_ARN="your-step-function-arn"}' \
   --region ap-south-1
 ```
 ### 3. Deploy Complete Infrastructure
