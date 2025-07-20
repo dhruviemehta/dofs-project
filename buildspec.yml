@@ -7,7 +7,7 @@ phases:
     commands:
     - echo Installing required packages
     - yum update -y
-    - yum install -y unzip wget jq
+    - yum install -y unzip wget
     - echo Installing Terraform
     - cd /tmp
     - wget -q https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
@@ -23,13 +23,21 @@ phases:
     - echo Pre-build phase started on `date`
     - echo Current directory is `pwd`
     - ls -la
+    - echo Installing Lambda dependencies
+    - cd lambdas/api_handler && npm install --production --silent
+    - cd ../validator && (npm install --production --silent || echo "No package.json found")
+    - cd ../order_storage && npm install --production --silent
+    - cd ../fulfill_order && npm install --production --silent
+    - cd ../../terraform
     - echo "Creating backend configuration for CI/CD..."
-    - cd terraform
-    - echo 'bucket = "dofs-terraform-state-4aa0782d"' > backend-cicd.hcl
-    - echo 'key = "terraform.tfstate"' >> backend-cicd.hcl
-    - echo 'region = "ap-south-1"' >> backend-cicd.hcl
-    - echo 'encrypt = true' >> backend-cicd.hcl
-    - echo 'dynamodb_table = "dofs-terraform-locks"' >> backend-cicd.hcl
+    - |
+      cat > backend-cicd.hcl << EOF
+      bucket         = "dofs-terraform-state-4aa0782d"
+      key            = "terraform.tfstate"
+      region         = "ap-south-1"
+      encrypt        = true
+      dynamodb_table = "dofs-terraform-locks"
+      EOF
     - echo "Backend configuration created:"
     - cat backend-cicd.hcl
     - echo "Initializing Terraform with backend config..."
@@ -38,29 +46,29 @@ phases:
   build:
     commands:
     - echo Build started on `date`
-    - echo "🚀 Running 3-Stage Deployment to Handle Circular Dependency"
-    - echo "=================================================="
-    - cd $CODEBUILD_SRC_DIR
-    - chmod +x deploy-infrastructure.sh
-    - export PROJECT_NAME=$PROJECT_NAME
-    - export ENVIRONMENT=$ENVIRONMENT
-    - export AWS_REGION=$AWS_DEFAULT_REGION
-    - echo "Configuration:"
-    - echo "  Project: $PROJECT_NAME"
-    - echo "  Environment: $ENVIRONMENT"
-    - echo "  Region: $AWS_REGION"
-    - ./deploy-infrastructure.sh
+    - echo "Current directory:" `pwd`
+    - echo "Checking current state..."
+    - terraform show || echo "No existing state"
+    - echo "Running Terraform Plan first"
+    - terraform plan -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION" -detailed-exitcode || export PLAN_EXIT_CODE=$?
+    - |
+      if [ "$PLAN_EXIT_CODE" = "2" ]; then
+        echo "Changes detected, proceeding with apply"
+        terraform apply -auto-approve -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
+      elif [ "$PLAN_EXIT_CODE" = "0" ]; then
+        echo "No changes needed"
+      else
+        echo "Plan failed with exit code $PLAN_EXIT_CODE"
+        exit 1
+      fi
 
   post_build:
     commands:
     - echo Build completed on `date`
     - echo "Deployment result:"
-    - cd terraform
     - terraform output -json > terraform_outputs.json || echo "No outputs available"
     - echo "Terraform outputs:"
     - cat terraform_outputs.json || echo "No outputs to display"
-    - echo "🎉 3-Stage Deployment Complete!"
-    - echo "✅ Circular dependency resolved automatically"
 
 artifacts:
   files:

@@ -61,21 +61,24 @@ This script will:
 > - **Step Functions** need Lambda function ARNs to define the workflow
 > - This creates a Terraform cycle that prevents normal deployment
 
-### 🚨 **This Issue ONLY Affects Manual `terraform apply` Commands**
+### 🚨 **This Issue Affects Both Manual `terraform apply` AND Standard CI/CD**
 
-**✅ RECOMMENDED SOLUTIONS (No Issues):**
+**✅ RECOMMENDED SOLUTION (Only This Works):**
 - **Use the deployment script**: `./deploy-infrastructure.sh` (handles circular dependency automatically)
-- **Use CI/CD pipeline**: Automated deployment via CodeBuild (documented below)
 
-### MANUAL TERRAFORM DEPLOYMENT:
-If you choose to run `terraform apply` manually, note that:
+### THESE APPROACHES WILL PASS NULL TO LAMBDA:
+- **Manual `terraform apply`**: Direct Terraform commands
+- **Standard CI/CD pipeline**: Regular CodeBuild/CodePipeline using basic `terraform apply`
+
+### MANUAL TERRAFORM DEPLOYMENT OR STANDARD CI/CD:
+If you choose to run `terraform apply` manually or use standard CI/CD without the deployment script, note that:
 - The Step Function ARN will be passed as `null` to the Lambda function
 - You **MUST** manually update the Lambda environment variable later via AWS CLI or Console:
- ```bash
- aws lambda update-function-configuration \
-   --function-name dofs-dev-api_handler \
-   --environment Variables='{"STEP_FUNCTION_ARN":"your-step-function-arn"}' \
-   --region ap-south-1
+```bash
+aws lambda update-function-configuration \
+  --function-name dofs-dev-api_handler \
+  --environment Variables='{"PROJECT_NAME":"dofs","ENVIRONMENT":"dev","STEP_FUNCTION_ARN":"your-step-function-arn"}' \
+  --region ap-south-1
 ```
 ### 3. Deploy Complete Infrastructure
 
