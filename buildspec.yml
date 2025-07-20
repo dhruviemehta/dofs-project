@@ -5,40 +5,54 @@ phases:
     runtime-versions:
       nodejs: 18
     commands:
+    - echo Installing required packages
+    - yum update -y
+    - yum install -y unzip wget
     - echo Installing Terraform
-    - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
-    - unzip terraform_1.6.0_linux_amd64.zip
+    - cd /tmp
+    - wget -q https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+    - unzip -q terraform_1.6.0_linux_amd64.zip
+    - chmod +x terraform
     - mv terraform /usr/local/bin/
+    - cd $CODEBUILD_SRC_DIR
     - terraform --version
+    - echo Terraform installation complete
 
   pre_build:
     commands:
     - echo Pre-build phase started on `date`
+    - echo Current directory is `pwd`
+    - ls -la
     - echo Installing Lambda dependencies
-    - cd lambdas/api_handler && npm install --production
-    - cd ../validator && npm install --production || true
-    - cd ../order_storage && npm install --production
-    - cd ../fulfill_order && npm install --production
+    - cd lambdas/api_handler && npm install --production --silent
+    - cd ../validator && (npm install --production --silent || echo "No package.json found")
+    - cd ../order_storage && npm install --production --silent
+    - cd ../fulfill_order && npm install --production --silent
     - cd ../../terraform
-    - terraform init
+    - echo Initializing Terraform
+    - terraform init -input=false
 
   build:
     commands:
     - echo Build started on `date`
+    - echo "Current directory:" `pwd`
+    - echo "Running Terraform Plan first"
+    - terraform plan -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
     - echo "Running Terraform Apply"
-    - terraform apply -auto-approve -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
+    - terraform apply -auto-approve -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
 
   post_build:
     commands:
     - echo Build completed on `date`
     - echo "Deployment successful"
     - terraform output -json > terraform_outputs.json || echo "No outputs available"
+    - echo "Terraform outputs saved"
 
 artifacts:
   files:
   - terraform/terraform_outputs.json
   - terraform/**/*
-  discard-paths: no
+  name: terraform-outputs
 
 cache:
   paths:
