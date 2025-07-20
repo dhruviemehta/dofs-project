@@ -406,3 +406,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ---
 
 **Built with ❤️ using AWS Serverless Services, Terraform, and DevOps best practices**
+
+**Built by:** Dhruvi Mehta  
+**Contact:** dhruvimehta228@gmail.com
