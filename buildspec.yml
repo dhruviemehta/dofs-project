@@ -29,24 +29,46 @@ phases:
     - cd ../order_storage && npm install --production --silent
     - cd ../fulfill_order && npm install --production --silent
     - cd ../../terraform
-    - echo Initializing Terraform
-    - terraform init -input=false
+    - echo "Creating backend configuration for CI/CD..."
+    - |
+      cat > backend-cicd.hcl << EOF
+      bucket         = "dofs-terraform-state-4aa0782d"
+      key            = "terraform.tfstate"
+      region         = "ap-south-1"
+      encrypt        = true
+      dynamodb_table = "dofs-terraform-locks"
+      EOF
+    - echo "Backend configuration created:"
+    - cat backend-cicd.hcl
+    - echo "Initializing Terraform with backend config..."
+    - terraform init -input=false -backend-config=backend-cicd.hcl
 
   build:
     commands:
     - echo Build started on `date`
     - echo "Current directory:" `pwd`
+    - echo "Checking current state..."
+    - terraform show || echo "No existing state"
     - echo "Running Terraform Plan first"
-    - terraform plan -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
-    - echo "Running Terraform Apply"
-    - terraform apply -auto-approve -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
+    - terraform plan -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION" -detailed-exitcode || export PLAN_EXIT_CODE=$?
+    - |
+      if [ "$PLAN_EXIT_CODE" = "2" ]; then
+        echo "Changes detected, proceeding with apply"
+        terraform apply -auto-approve -input=false -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
+      elif [ "$PLAN_EXIT_CODE" = "0" ]; then
+        echo "No changes needed"
+      else
+        echo "Plan failed with exit code $PLAN_EXIT_CODE"
+        exit 1
+      fi
 
   post_build:
     commands:
     - echo Build completed on `date`
-    - echo "Deployment successful"
+    - echo "Deployment result:"
     - terraform output -json > terraform_outputs.json || echo "No outputs available"
-    - echo "Terraform outputs saved"
+    - echo "Terraform outputs:"
+    - cat terraform_outputs.json || echo "No outputs to display"
 
 artifacts:
   files:
