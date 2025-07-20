@@ -1,0 +1,46 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      nodejs: 18
+    commands:
+    - echo Installing Terraform
+    - wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+    - unzip terraform_1.6.0_linux_amd64.zip
+    - mv terraform /usr/local/bin/
+    - terraform --version
+
+  pre_build:
+    commands:
+    - echo Pre-build phase started on `date`
+    - echo Installing Lambda dependencies
+    - cd lambdas/api_handler && npm install --production
+    - cd ../validator && npm install --production || true
+    - cd ../order_storage && npm install --production
+    - cd ../fulfill_order && npm install --production
+    - cd ../../terraform
+    - terraform init
+
+  build:
+    commands:
+    - echo Build started on `date`
+    - echo "Running Terraform Apply"
+    - terraform apply -auto-approve -var="project_name=$PROJECT_NAME" -var="environment=$ENVIRONMENT" -var="aws_region=$AWS_DEFAULT_REGION"
+
+  post_build:
+    commands:
+    - echo Build completed on `date`
+    - echo "Deployment successful"
+    - terraform output -json > terraform_outputs.json || echo "No outputs available"
+
+artifacts:
+  files:
+  - terraform/terraform_outputs.json
+  - terraform/**/*
+  discard-paths: no
+
+cache:
+  paths:
+  - '/root/.terraform/**/*'
+  - 'lambdas/**/node_modules/**/*'

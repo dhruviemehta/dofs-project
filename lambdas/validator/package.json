@@ -1,0 +1,9 @@
+{
+    "name": "validator",
+    "version": "1.0.0",
+    "description": "Order Validator for Order Fulfillment System",
+    "main": "index.js",
+    "engines": {
+        "node": ">=18.0.0"
+    }
+}

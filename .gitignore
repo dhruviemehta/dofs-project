@@ -39,6 +39,7 @@ build/Release
 
 # Dependency directories
 node_modules/
+**/node_modules/
 jspm_packages/
 
 # Snowpack dependency directory (https://snowpack.dev/)
@@ -137,3 +138,400 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# ================================
+# DOFS Project .gitignore
+# ================================
+
+# ================================
+# SENSITIVE & SECURITY FILES
+# ================================
+# AWS Credentials
+.aws/
+aws-credentials.json
+credentials.json
+.env
+.env.local
+.env.*.local
+
+# API Keys & Tokens
+**/secrets/
+**/*secret*
+**/*key*
+**/*token*
+github-token.txt
+api-keys.txt
+
+# Private Keys
+*.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+id_dsa*
+id_ecdsa*
+id_ed25519*
+
+# ================================
+# TERRAFORM FILES
+# ================================
+# Terraform state files
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+terraform.tfstate.d/
+
+# Terraform variable files with sensitive data
+*.tfvars
+terraform.tfvars
+terraform.tfvars.json
+*.auto.tfvars
+*.auto.tfvars.json
+
+# Terraform lock files (optional - some teams commit this)
+.terraform.lock.hcl
+
+# Terraform directories
+.terraform/
+.terraform.tfstate.lock.info
+
+# Terraform plan files
+*.tfplan
+tfplan
+plan.out
+
+# Terraform backend configuration files
+backend.hcl
+backend.conf
+
+# Terraform crash log files
+crash.log
+crash.*.log
+
+# Override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# ================================
+# NODE.JS / NPM FILES
+# ================================
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage
+.grunt
+
+# Bower dependency directory
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons
+build/Release
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# ================================
+# AWS & CLOUD FILES
+# ================================
+# AWS SAM
+.aws-sam/
+
+# AWS Lambda packaging
+*.zip
+lambda-*.zip
+deployment-package.zip
+
+# CloudFormation templates (generated)
+packaged-template.yaml
+packaged-template.yml
+
+# CDK
+cdk.out/
+cdk.context.json
+
+# Serverless Framework
+.serverless/
+.serverless_nextjs/
+
+# ================================
+# IDE & EDITOR FILES
+# ================================
+# VSCode
+.vscode/
+*.code-workspace
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# Eclipse
+.project
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*~
+*.swp
+*.swo
+**/tags
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ================================
+# OPERATING SYSTEM FILES
+# ================================
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Icon?
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ================================
+# LOGS & TEMPORARY FILES
+# ================================
+# Log files
+*.log
+logs/
+log/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+.temp/
+.tmp/
+
+# PID files
+*.pid
+*.seed
+*.pid.lock
+
+# ================================
+# TESTING & COVERAGE
+# ================================
+# Jest
+coverage/
+.nyc_output/
+
+# Test results
+test-results/
+test-output/
+junit.xml
+
+# ================================
+# BUILD & DISTRIBUTION
+# ================================
+# Build directories
+build/
+dist/
+out/
+target/
+
+# Archive files
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.rar
+*.7z
+
+# ================================
+# PROJECT SPECIFIC
+# ================================
+# Local configuration files
+config.local.json
+local-config.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache directories
+.cache/
+cache/
+
+# Backup files
+*.backup
+*.bak
+backup/
+backups/
+
+# Generated documentation
+docs/generated/
+documentation/generated/
+
+# Lambda deployment packages (already zipped)
+lambda_*.zip
+deployment_*.zip
+
+# Terraform modules (downloaded)
+.terraform/modules/
+
+# Local testing files
+test-data/
+mock-data/
+sample-data/
+
+# Performance test results
+performance-results/
+load-test-results/
+
+# Local scripts (should be committed if needed by team)
+# local-scripts/
+# run-local.sh
+
+# ================================
+# CI/CD SPECIFIC
+# ================================
+# CodeBuild artifacts
+codebuild-artifacts/
+
+# Pipeline artifacts
+pipeline-artifacts/
+
+# Deployment artifacts
+deployment-artifacts/
+
+# ================================
+# COMMENTS & GUIDELINES
+# ================================
+# Add any project-specific files above this line
+# 
+# Remember to:
+# 1. Never commit sensitive data (API keys, passwords, etc.)
+# 2. Be careful with Terraform state files (contain sensitive data)
+# 3. Consider if .terraform.lock.hcl should be committed (team decision)
+# 4. Review and customize this file for your specific needs
+#
+# To check what files would be ignored:
+# git status --ignored
+#
+# To force add an ignored file (use carefully):
+# git add -f filename
+#
+# To remove already tracked files that should be ignored:
+# git rm --cached filename
+# ================================

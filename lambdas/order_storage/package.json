@@ -1,0 +1,14 @@
+{
+    "name": "order-storage",
+    "version": "1.0.0",
+    "description": "Order Storage for Order Fulfillment System",
+    "main": "index.js",
+    "dependencies": {
+      "@aws-sdk/client-dynamodb": "^3.0.0",
+      "@aws-sdk/lib-dynamodb": "^3.0.0",
+      "@aws-sdk/client-sqs": "^3.0.0"
+    },
+    "engines": {
+      "node": ">=18.0.0"
+    }
+  }
