@@ -330,7 +330,7 @@ main() {
     test_invalid_order
     test_missing_fields
     test_large_order
-    monitor_processing
+    # monitor_processing
     
     echo ""
     echo "🎯 Additional Testing Options"
@@ -344,7 +344,7 @@ main() {
         generate_load_test
         echo "⏱️  Waiting for load test processing..."
         sleep 60
-        monitor_processing
+        # monitor_processing
     fi
     
     cleanup_test_data
